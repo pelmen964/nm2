@@ -28,8 +28,9 @@ namespace nm2
                     }
                 }
             }
-            
-            //Task
+
+            Task t = new Task(matrixRank, taskMatrix);
+            t.Solve(methodNumber, "sd");
             
             Console.Out.WriteLine("ABOBA");
         }
