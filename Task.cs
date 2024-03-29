@@ -72,19 +72,12 @@ namespace nm2
                     double m = locMatrix[i, k] / locMatrix[k, k]; /* множитель 1-го шага,
                                                                      будем умножать 1-ю строку на коэфф
                                                                      вычитать из каждой строки её */
-                    /*  В одном цикле отнять не получится т.к обратная
-                    матрица не иммет свободных членов   */
-                    for (int j = 0; j < _matrixRank; j++)
+
+                    for (int j = 0; j < _matrixRank + 1; j++)
                     {
-                        invertMatrix[i, j] -= locMatrix[k, j] * m;
                         locMatrix[i, j] -= locMatrix[k, j] * m;
+                        
                     }
-                    for (int j = 0; j < _matrixRank; j++)
-                    {
-                        locMatrix[i,_matrixRank] -= locMatrix[k, _matrixRank] * m;
-                    }
-                    
-                    
                 }
 
                 det *= locMatrix[k, k];
