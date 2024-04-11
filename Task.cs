@@ -49,7 +49,13 @@ namespace nm2
             }
         }
 
-        object SolveWithGauss(uint taskType, double[,] taskMatrix, bool triangleMatrix = false)
+        private double[] residuals() // Вектор невязки
+        {
+            
+        }
+        
+
+        private object SolveWithGauss(uint taskType, double[,] taskMatrix, bool triangleMatrix = false)
         {
             double[,] locMatrix = (double[,])taskMatrix.Clone();
 
@@ -78,7 +84,7 @@ namespace nm2
 
                         for (int j = 0; j < _matrixRank; j++)
                         {
-                            invertMatrix[i, j] -= locMatrix[k, j] * m;
+                            invertMatrix[i, j] -= invertMatrix[k, j] * m;
                             locMatrix[i, j] -= locMatrix[k, j] * m;
                         }
 
@@ -90,7 +96,7 @@ namespace nm2
                     {
                         for (int j = 0; j < _matrixRank + 1; j++)
                         {
-                            sb.Append(locMatrix[i, j].ToString("   00.000;  -00.000"));
+                            sb.Append(locMatrix[i, j].ToString("\t 0.000;\t-0.000"));
                         }
 
                         sb.AppendLine();
@@ -120,7 +126,7 @@ namespace nm2
                 sb.AppendLine($"\nb{cnt++}");
                 for (int j = 0; j < _matrixRank; j++)
                 {
-                    sb.Append(locMatrix[j, _matrixRank].ToString("   00.000;  -00.000"));
+                    sb.Append(locMatrix[j, _matrixRank].ToString("\t 0.000;\t-0.000"));
                 }
             }
 
@@ -129,7 +135,7 @@ namespace nm2
             switch (taskType)
             {
                 case 1:
-                    
+
                     foreach (var val in resVector)
                     {
                         sb.Append(val + " ");
@@ -141,32 +147,26 @@ namespace nm2
                     sb.Append(det);
                     break;
                 case 3:
-
-
-                    for (int i = (int)_matrixRank - 1; i >= 0; i--)
+                    
+                    var tmpInvertMatrix = (double[,])invertMatrix.Clone();
+                    for (int i = 0; i < _matrixRank; i++)
                     {
-                        var coeff = 1 / locMatrix[i, i];
+                        sb.AppendLine($"e{i + 1}");
+                        double[,] invTaskMatrix = locMatrix;
                         for (int j = 0; j < _matrixRank; j++)
                         {
-                            locMatrix[i, j] *= coeff;
-                            invertMatrix[i, j] *= coeff;
+                            invTaskMatrix[j, _matrixRank] = tmpInvertMatrix[j, i];
                         }
 
-                        for (int j = 0; j < i; j++)
+                        var invVector = (double[])SolveWithGauss(1, invTaskMatrix, true);
+                        for (int j = 0; j < _matrixRank; j++)
                         {
-                            coeff = locMatrix[j, i];
-                            for (int k = i; k < _matrixRank; k++)
-                            {
-                                locMatrix[j, k] -= locMatrix[j, k] * coeff;
-                            }
-
-                            for (int k = 0; k < _matrixRank; k++)
-                            {
-                                invertMatrix[j, k] -= invertMatrix[j, k] * coeff;
-                            }
+                            
+                            sb.Append(invVector[j].ToString("\t 0.000; \t-0.000"));
+                            invertMatrix[j, i] = invVector[j];
                         }
-                        
-                        
+
+                        sb.AppendLine();
                     }
 
                     break;
