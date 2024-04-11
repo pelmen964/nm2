@@ -1,4 +1,5 @@
 using System;
+using System.Text;
 
 namespace nm2
 {
@@ -48,76 +49,138 @@ namespace nm2
             }
         }
 
-        void SolveWithGauss(uint taskType)
+        object SolveWithGauss(uint taskType, double[,] taskMatrix, bool triangleMatrix = false)
         {
-            double[,] locMatrix = (double[,])_taskMatrix.Clone();
+            double[,] locMatrix = (double[,])taskMatrix.Clone();
 
-            double[,] invertMatrix = new double[_matrixRank, _matrixRank]; /* Обратная матрица 
+            double[,] invertMatrix = new double[_matrixRank, _matrixRank]; /* Обратная матрица
                                                                               Изначально единичная
-            // f                                                                                  */ 
+            // f                                                                                  */
             for (int i = 0; i < _matrixRank; i++)
             {
                 invertMatrix[i, i] = 1;
             }
-            
+
             double det = 1; // Опредилитель матрицы системы
 
-            
-            
+            var sb = new StringBuilder();
+
             // Пробегаем по строкам и находим коэфф. (множители 1-го шага, назову их 'm')
-            for (int k = 0; k < _matrixRank; k++)
+            if (!triangleMatrix)
             {
-                for (int i = k + 1; i < _matrixRank; i++)
+                for (int k = 0; k < _matrixRank; k++)
                 {
-                    double m = locMatrix[i, k] / locMatrix[k, k]; /* множитель 1-го шага,
+                    for (int i = k + 1; i < _matrixRank; i++)
+                    {
+                        double m = locMatrix[i, k] / locMatrix[k, k]; /* множитель 1-го шага,
                                                                      будем умножать 1-ю строку на коэфф
                                                                      вычитать из каждой строки её */
 
-                    for (int j = 0; j < _matrixRank + 1; j++)
-                    {
-                        locMatrix[i, j] -= locMatrix[k, j] * m;
-                        
+                        for (int j = 0; j < _matrixRank; j++)
+                        {
+                            invertMatrix[i, j] -= locMatrix[k, j] * m;
+                            locMatrix[i, j] -= locMatrix[k, j] * m;
+                        }
+
+                        locMatrix[i, _matrixRank] -= locMatrix[k, _matrixRank] * m;
                     }
+
+                    sb.AppendLine($"A{k + 1}");
+                    for (int i = 0; i < _matrixRank; i++)
+                    {
+                        for (int j = 0; j < _matrixRank + 1; j++)
+                        {
+                            sb.Append(locMatrix[i, j].ToString("   00.000;  -00.000"));
+                        }
+
+                        sb.AppendLine();
+                    }
+
+                    det *= locMatrix[k, k];
                 }
 
-                det *= locMatrix[k, k];
+                sb.AppendLine();
             }
 
             double[] resVector = new double[_matrixRank];
 
+            int cnt = 1;
             double tmpColRes1, tmpColRes2;
-            for (int i = (int)_matrixRank-1; i >= 0; i--)
-            {   
+            for (int i = (int)_matrixRank - 1; i >= 0; i--)
+            {
                 tmpColRes1 = 0;
                 for (int j = i; j < _matrixRank; j++)
                 {
                     tmpColRes2 = locMatrix[i, j] * resVector[j];
                     tmpColRes1 += tmpColRes2;
                 }
-                resVector[i] = (locMatrix[i,_matrixRank] - tmpColRes1) / locMatrix[i, i];
-                
+
+                locMatrix[i, _matrixRank] = (locMatrix[i, _matrixRank] - tmpColRes1) / locMatrix[i, i];
+                resVector[i] = locMatrix[i, _matrixRank];
+                sb.AppendLine($"\nb{cnt++}");
+                for (int j = 0; j < _matrixRank; j++)
+                {
+                    sb.Append(locMatrix[j, _matrixRank].ToString("   00.000;  -00.000"));
+                }
             }
 
-            foreach (var val in resVector)
+            sb.AppendLine();
+
+            switch (taskType)
             {
-                Console.Out.Write(val);
+                case 1:
+                    
+                    foreach (var val in resVector)
+                    {
+                        sb.Append(val + " ");
+                    }
+
+                    return resVector;
+                    break;
+                case 2:
+                    sb.Append(det);
+                    break;
+                case 3:
+
+
+                    for (int i = (int)_matrixRank - 1; i >= 0; i--)
+                    {
+                        var coeff = 1 / locMatrix[i, i];
+                        for (int j = 0; j < _matrixRank; j++)
+                        {
+                            locMatrix[i, j] *= coeff;
+                            invertMatrix[i, j] *= coeff;
+                        }
+
+                        for (int j = 0; j < i; j++)
+                        {
+                            coeff = locMatrix[j, i];
+                            for (int k = i; k < _matrixRank; k++)
+                            {
+                                locMatrix[j, k] -= locMatrix[j, k] * coeff;
+                            }
+
+                            for (int k = 0; k < _matrixRank; k++)
+                            {
+                                invertMatrix[j, k] -= invertMatrix[j, k] * coeff;
+                            }
+                        }
+                        
+                        
+                    }
+
+                    break;
             }
+
+            return sb.ToString();
         }
 
         public void Solve(uint taskType, string outFileName)
         {
-            switch (taskType)
-            {
-                case 1:
-                    SolveWithGauss(1);
-                    break;
-                case 2:
-                    break;
-                case 3:
-                    break;
-                default:
-                    throw new ArgumentException("Неверный тип задачи");
-            }
+            if (taskType > 3)
+                throw new ArgumentException("Неверный тип задачи");
+            var outStr = SolveWithGauss(taskType, _taskMatrix);
+            Console.Out.WriteLine(outStr);
         }
     }
 }
