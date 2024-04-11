@@ -54,7 +54,7 @@ namespace nm2
 
             double[,] invertMatrix = new double[_matrixRank, _matrixRank]; /* Обратная матрица 
                                                                               Изначально единичная
-                                                                                                */ 
+            // f                                                                                  */ 
             for (int i = 0; i < _matrixRank; i++)
             {
                 invertMatrix[i, i] = 1;
