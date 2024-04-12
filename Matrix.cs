@@ -82,7 +82,7 @@ namespace nm2
                     throw new ArgumentException("Выход за границы");
                 return _data[row, col];
             }
-            private set
+            internal set
             {
                 if (col >= Cols || row >= Rows)
                     throw new ArgumentException("Выход за границы");

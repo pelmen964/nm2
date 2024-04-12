@@ -33,16 +33,16 @@ namespace nm2
 
          */
 
-        private double[,] _taskMatrix; // Расширенная матрица системы 
+        private Matrix _taskMatrix; // Расширенная матрица системы 
         private uint _matrixRank; // Ранг той матрицы
 
         public Task(uint matrixRank, double[,] taskMatrix)
         {
             _matrixRank = matrixRank;
-            _taskMatrix = new double[_matrixRank, _matrixRank + 1];
-            for (int i = 0; i < matrixRank; i++)
+            _taskMatrix = new Matrix(_matrixRank, _matrixRank + 1);
+            for (uint i = 0; i < matrixRank; i++)
             {
-                for (int j = 0; j < matrixRank + 1; j++)
+                for (uint j = 0; j < matrixRank + 1; j++)
                 {
                     _taskMatrix[i, j] = taskMatrix[i, j];
                 }
@@ -72,14 +72,14 @@ namespace nm2
             return norm;
         }
 
-        private object SolveWithGauss(uint taskType, double[,] taskMatrix, bool triangleMatrix = false)
+        private object SolveWithGauss(uint taskType, Matrix taskMatrix, bool triangleMatrix = false)
         {
-            double[,] locMatrix = (double[,])taskMatrix.Clone();
+            Matrix locMatrix = (Matrix)taskMatrix.Clone();
 
-            double[,] invertMatrix = new double[_matrixRank, _matrixRank]; /* Обратная матрица
+            Matrix invertMatrix = new Matrix(_matrixRank, _matrixRank); /* Обратная матрица
                                                                               Изначально единичная
             // f                                                                                  */
-            for (int i = 0; i < _matrixRank; i++)
+            for (uint i = 0; i < _matrixRank; i++)
             {
                 invertMatrix[i, i] = 1;
             }
@@ -91,15 +91,15 @@ namespace nm2
             // Пробегаем по строкам и находим коэфф. (множители 1-го шага, назову их 'm')
             if (!triangleMatrix)
             {
-                for (int k = 0; k < _matrixRank; k++)
+                for (uint k = 0; k < _matrixRank; k++)
                 {
-                    for (int i = k + 1; i < _matrixRank; i++)
+                    for (uint i = k + 1; i < _matrixRank; i++)
                     {
                         double m = locMatrix[i, k] / locMatrix[k, k]; /* множитель 1-го шага,
                                                                      будем умножать 1-ю строку на коэфф
                                                                      вычитать из каждой строки её */
 
-                        for (int j = 0; j < _matrixRank; j++)
+                        for (uint j = 0; j < _matrixRank; j++)
                         {
                             invertMatrix[i, j] -= invertMatrix[k, j] * m;
                             locMatrix[i, j] -= locMatrix[k, j] * m;
@@ -109,9 +109,9 @@ namespace nm2
                     }
 
                     sb.AppendLine($"A{k + 1}");
-                    for (int i = 0; i < _matrixRank; i++)
+                    for (uint i = 0; i < _matrixRank; i++)
                     {
-                        for (int j = 0; j < _matrixRank + 1; j++)
+                        for (uint j = 0; j < _matrixRank + 1; j++)
                         {
                             sb.Append(locMatrix[i, j].ToString("\t 0.000;\t-0.000"));
                         }
@@ -129,10 +129,10 @@ namespace nm2
 
             int cnt = 1;
             double tmpColRes1, tmpColRes2;
-            for (int i = (int)_matrixRank - 1; i >= 0; i--)
+            for (uint i = (uint)_matrixRank - 1; i >= 0; i--)
             {
                 tmpColRes1 = 0;
-                for (int j = i; j < _matrixRank; j++)
+                for (uint j = i; j < _matrixRank; j++)
                 {
                     tmpColRes2 = locMatrix[i, j] * resVector[j];
                     tmpColRes1 += tmpColRes2;
@@ -141,7 +141,7 @@ namespace nm2
                 locMatrix[i, _matrixRank] = (locMatrix[i, _matrixRank] - tmpColRes1) / locMatrix[i, i];
                 resVector[i] = locMatrix[i, _matrixRank];
                 sb.AppendLine($"\nb{cnt++}");
-                for (int j = 0; j < _matrixRank; j++)
+                for (uint j = 0; j < _matrixRank; j++)
                 {
                     sb.Append(locMatrix[j, _matrixRank].ToString("\t 0.000;\t-0.000"));
                 }
@@ -166,17 +166,17 @@ namespace nm2
                 case 3:
                     
                     var tmpInvertMatrix = (double[,])invertMatrix.Clone();
-                    for (int i = 0; i < _matrixRank; i++)
+                    for (uint i = 0; i < _matrixRank; i++)
                     {
                         sb.AppendLine($"e{i + 1}");
-                        double[,] invTaskMatrix = locMatrix;
-                        for (int j = 0; j < _matrixRank; j++)
+                        Matrix invTaskMatrix = locMatrix;
+                        for (uint j = 0; j < _matrixRank; j++)
                         {
                             invTaskMatrix[j, _matrixRank] = tmpInvertMatrix[j, i];
                         }
 
                         var invVector = (double[])SolveWithGauss(1, invTaskMatrix, true);
-                        for (int j = 0; j < _matrixRank; j++)
+                        for (uint j = 0; j < _matrixRank; j++)
                         {
                             
                             sb.Append(invVector[j].ToString("\t 0.000; \t-0.000"));
