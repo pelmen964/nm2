@@ -36,7 +36,7 @@ namespace nm2
         private Matrix _taskMatrix; // Расширенная матрица системы 
         private uint _matrixRank; // Ранг той матрицы
 
-        public Task(uint matrixRank, double[,] taskMatrix)
+        public Task(uint matrixRank, Matrix taskMatrix)
         {
             _matrixRank = matrixRank;
             _taskMatrix = new Matrix(_matrixRank, _matrixRank + 1);
@@ -49,20 +49,19 @@ namespace nm2
             }
         }
 
-        private double[] residuals() // Вектор невязки
+        private Vector residuals() // Вектор невязки
         {
             
         }
         
-        private double MatrixNorm(double[,] taskMatrix)
+        private double MatrixNorm(Matrix taskMatrix)
         {
-            int n = taskMatrix.GetLength(0);
+            uint n = taskMatrix.Rows;
             double norm = 0;
 
-            for (int i = 0; i < n; i++)
+            for (uint i = 0; i < n; i++)
             {
-                ;
-                for (int j = 0; j < n; j++)
+                for (uint j = 0; j < n; j++)
                 {
                     norm += Math.Abs(taskMatrix[i, j]);
                 }
@@ -125,7 +124,7 @@ namespace nm2
                 sb.AppendLine();
             }
 
-            double[] resVector = new double[_matrixRank];
+            Vector resVector = new Vector(_matrixRank);
 
             int cnt = 1;
             double tmpColRes1, tmpColRes2;

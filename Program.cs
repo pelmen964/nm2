@@ -10,7 +10,7 @@ namespace nm2
         {
             Console.OutputEncoding = Encoding.UTF8;
             uint methodNumber,matrixRank;
-            double[,] taskMatrix;
+            Matrix taskMatrix;
             double elem;
             string[] border;
 
@@ -18,11 +18,11 @@ namespace nm2
             {
                 methodNumber = Convert.ToUInt32(sr.ReadLine());
                 matrixRank = Convert.ToUInt32(sr.ReadLine());
-                taskMatrix = new double[matrixRank, matrixRank + 1];
-                for (int i = 0; i < matrixRank; i++)
+                taskMatrix = new Matrix(matrixRank, matrixRank + 1);
+                for (uint i = 0; i < matrixRank; i++)
                 {
                     border = sr.ReadLine().Split();
-                    for (int j = 0; j < matrixRank+1; j++)
+                    for (uint j = 0; j < matrixRank+1; j++)
                     {
                         taskMatrix[i,j] = Convert.ToDouble(border[j]);
                     }

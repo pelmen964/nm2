@@ -11,11 +11,21 @@ namespace nm2
         private uint _size;
 
 
-        public Vector(uint len, double[] arr)
+        public Vector(uint len, double[] arr = null)
         {
             Console.Out.WriteLine($"Конструктор вектора {Id}");
             _size = len;
             _data = new double[len];
+
+            if (arr == null)
+            {
+                for (int i = 0; i < _size; i++)
+                {
+                    _data[i] = 0;
+                }
+                return;
+            }
+            
             if (_size < arr.Length)
             {
                 for (int i = 0; i < _size; i++)
