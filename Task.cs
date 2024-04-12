@@ -54,6 +54,23 @@ namespace nm2
             
         }
         
+        private double MatrixNorm(double[,] taskMatrix)
+        {
+            int n = taskMatrix.GetLength(0);
+            double norm = 0;
+
+            for (int i = 0; i < n; i++)
+            {
+                ;
+                for (int j = 0; j < n; j++)
+                {
+                    norm += Math.Abs(taskMatrix[i, j]);
+                }
+
+            }
+
+            return norm;
+        }
 
         private object SolveWithGauss(uint taskType, double[,] taskMatrix, bool triangleMatrix = false)
         {
