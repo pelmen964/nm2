@@ -69,7 +69,13 @@ namespace nm2
             get => _size;
             private set => _size = value;
         }
-
+        
+        public double[] Data
+        {
+            get => _data;
+            private set => _data = value;
+        }
+        
         public double this[uint index]
         {
             get
@@ -157,6 +163,16 @@ namespace nm2
             return GetMax().CompareTo(obj.GetMax());
         }
 
+        public double Norm()
+        {
+            double res = 0;
+            foreach (double val in this)
+            {
+                res += Math.Abs(val);
+            }
+            return res;
+        }
+        
         public static Vector operator +(Vector left, Vector right)
         {
             if (!CanAdd(left, right))

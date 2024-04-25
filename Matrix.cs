@@ -73,7 +73,13 @@ namespace nm2
             get => _cols;
             private set => _cols = value;
         }
-
+        
+        public double[,] Data
+        {
+            get => _data;
+            private set => _data = _data;
+        }
+        
         public double this[uint row, uint col]
         {
             get
@@ -126,7 +132,7 @@ namespace nm2
             return res;
         }
 
-        public override string ToString(string format, IFormatProvider formatProvider)
+        public override string ToString()
         {
             StringBuilder sb = new StringBuilder();
             sb.AppendLine($"Матрица id: {Id}");
@@ -174,6 +180,17 @@ namespace nm2
             return true;
         }
 
+        public double Norm()
+        {
+            double res = 0;
+            foreach (double val in this)
+            {
+                res += Math.Abs(val);
+            }
+
+            return res;
+        }
+        
         public static Matrix operator +(Matrix left, Matrix right)
         {
             if (!CanAdd(left, right))
@@ -181,7 +198,7 @@ namespace nm2
             Matrix res = new Matrix(left);
             for (uint i = 0; i < res._rows; i++)
             {
-                for (uint j = 0; i < res._rows; j++)
+                for (uint j = 0; j < res._cols; j++)
                 {
                     res[i, j] += right[i, j];
                 }
@@ -197,7 +214,7 @@ namespace nm2
             Matrix res = new Matrix(left);
             for (uint i = 0; i < res._rows; i++)
             {
-                for (uint j = 0; i < res._rows; j++)
+                for (uint j = 0; j < res._cols; j++)
                 {
                     res[i, j] -= right[i, j];
                 }

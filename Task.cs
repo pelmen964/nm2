@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Text;
 
 namespace nm2
@@ -49,27 +50,25 @@ namespace nm2
             }
         }
 
-        private Vector residuals() // Вектор невязки
+        private Vector Residuals(Matrix taskMatrix,Vector ansVec) // Вектор невязки
         {
-            
+            var result = new Vector(ansVec.Size);
+            for (uint i = 0; i < ansVec.Size; i++)
+            {
+                result[i] = taskMatrix[i, taskMatrix.Cols-1];
+            }
+            for (uint i = 0; i < taskMatrix.Rows; i++)
+            {
+                double temp = 0;
+                for (uint j = 0; j < taskMatrix.Cols-1; j++)
+                {
+                    temp += taskMatrix[i,j] * ansVec[j];
+                }
+                result[i] -= temp;
+            }
+            return result;
         }
         
-        private double MatrixNorm(Matrix taskMatrix)
-        {
-            uint n = taskMatrix.Rows;
-            double norm = 0;
-
-            for (uint i = 0; i < n; i++)
-            {
-                for (uint j = 0; j < n; j++)
-                {
-                    norm += Math.Abs(taskMatrix[i, j]);
-                }
-
-            }
-
-            return norm;
-        }
 
         private object SolveWithGauss(uint taskType, Matrix taskMatrix, bool triangleMatrix = false)
         {
@@ -108,16 +107,17 @@ namespace nm2
                     }
 
                     sb.AppendLine($"A{k + 1}");
-                    for (uint i = 0; i < _matrixRank; i++)
-                    {
-                        for (uint j = 0; j < _matrixRank + 1; j++)
-                        {
-                            sb.Append(locMatrix[i, j].ToString("\t 0.000;\t-0.000"));
-                        }
+                    // for (uint i = 0; i < _matrixRank; i++)
+                    // {
+                    //     for (uint j = 0; j < _matrixRank + 1; j++)
+                    //     {
+                    //         //sb.Append(locMatrix[i, j].ToString("\t 0.000;\t-0.000"));
+                    //     }
+                    //
+                    //     //sb.AppendLine();
+                    // }
 
-                        sb.AppendLine();
-                    }
-
+                    sb.AppendLine(locMatrix.ToString());
                     det *= locMatrix[k, k];
                 }
 
@@ -128,8 +128,9 @@ namespace nm2
 
             int cnt = 1;
             double tmpColRes1, tmpColRes2;
-            for (uint i = (uint)_matrixRank - 1; i >= 0; i--)
+            for (int ii = (int)_matrixRank - 1; ii >= 0; ii--)
             {
+                uint i = (uint)ii;
                 tmpColRes1 = 0;
                 for (uint j = i; j < _matrixRank; j++)
                 {
@@ -150,21 +151,31 @@ namespace nm2
 
             switch (taskType)
             {
+                case 0:
+                    return resVector;
+                    
                 case 1:
-
+                    sb.AppendLine("Вектор решения:");
                     foreach (var val in resVector)
                     {
                         sb.Append(val + " ");
                     }
+                    sb.AppendLine("\nВектор невязки:");
+                    Vector residual = Residuals(taskMatrix, resVector);
+                    foreach (var val in residual)
+                    {
+                        sb.Append(val + " ");
+                    }
 
-                    return resVector;
-                    break;
-                case 2:
-                    sb.Append(det);
-                    break;
-                case 3:
+                    sb.AppendLine($"\nНорма вектора невязки:\n{residual.Norm()}");
                     
-                    var tmpInvertMatrix = (double[,])invertMatrix.Clone();
+                    return sb;
+                case 2:
+                    sb.AppendLine($"\nОпределитель:\n{det}");
+                    return sb;
+                case 3:
+
+                    var tmpInvertMatrix = (double[,])invertMatrix.Data.Clone();
                     for (uint i = 0; i < _matrixRank; i++)
                     {
                         sb.AppendLine($"e{i + 1}");
@@ -174,10 +185,10 @@ namespace nm2
                             invTaskMatrix[j, _matrixRank] = tmpInvertMatrix[j, i];
                         }
 
-                        var invVector = (double[])SolveWithGauss(1, invTaskMatrix, true);
+                        var invVector = ((Vector)SolveWithGauss(0, invTaskMatrix, true)).Data;
                         for (uint j = 0; j < _matrixRank; j++)
                         {
-                            
+
                             sb.Append(invVector[j].ToString("\t 0.000; \t-0.000"));
                             invertMatrix[j, i] = invVector[j];
                         }
@@ -185,7 +196,29 @@ namespace nm2
                         sb.AppendLine();
                     }
 
-                    break;
+                    sb.AppendLine("Обратная матрица:");
+                    sb.AppendLine(invertMatrix.ToString());
+                    sb.AppendLine("Матрица невязки:");
+                    var tmpMatrix = new Matrix(taskMatrix.Rows,taskMatrix.Rows);
+                    for (uint i = 0; i < taskMatrix.Rows; i++)
+                    {
+                        for (uint j = 0; j < taskMatrix.Rows; j++)
+                        {
+                            tmpMatrix[i, j] = taskMatrix[i, j];
+                        }
+                    }
+                    invertMatrix = tmpMatrix * invertMatrix;
+                    var identetiMatrix = new Matrix(tmpMatrix.Rows, tmpMatrix.Rows);
+                    for (uint i = 0; i < tmpMatrix.Rows; i++)
+                    {
+                        identetiMatrix[i, i] = 1;
+                    }
+
+                    invertMatrix -= identetiMatrix;
+                    sb.AppendLine(invertMatrix.ToString());
+                    sb.AppendLine($"Норма матрицы невязки:\n{invertMatrix.Norm()}");
+                    
+                    return sb.ToString();
             }
 
             return sb.ToString();
@@ -196,6 +229,13 @@ namespace nm2
             if (taskType > 3)
                 throw new ArgumentException("Неверный тип задачи");
             var outStr = SolveWithGauss(taskType, _taskMatrix);
+            using (FileStream fstream = new FileStream(outFileName, FileMode.OpenOrCreate))
+            {
+                // преобразуем строку в байты
+                byte[] buffer = Encoding.Default.GetBytes((string)outStr);
+                // запись массива байтов в файл
+                fstream.WriteAsync(buffer, 0, buffer.Length);
+            }
             Console.Out.WriteLine(outStr);
         }
     }
