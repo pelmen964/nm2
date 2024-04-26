@@ -236,7 +236,9 @@ namespace nm2
             }
             
             var sb = new StringBuilder();
-            
+            sb.AppendLine("Изначальная матрица");
+            sb.AppendLine(locMatrix.ToString());
+            sb.AppendLine();
             if(!IsConvergent(locMatrix))
             {
 
@@ -261,6 +263,16 @@ namespace nm2
                     }
                 }
             }
+            sb.AppendLine("Матрица альфа:");
+            sb.AppendLine(alpha.ToString());
+            sb.AppendLine();
+            sb.AppendLine("Вектор бета:");
+            foreach (var val in beta)
+            {
+                sb.Append(val + " ");
+            }
+            sb.AppendLine();
+            
             uint n = beta.Size;
             Vector prev_x = new Vector(_matrixRank);
             Vector x = (Vector)beta.Clone();
@@ -297,7 +309,7 @@ namespace nm2
                 {
                     error += Math.Abs(x[i] - prev_x[i]);
                 }
-
+                
                 iteration++;
             }
 
@@ -305,14 +317,84 @@ namespace nm2
             {
                 Console.WriteLine("The method did not converge within the specified number of iterations.");
             }
+            
+            switch (taskType)
+            {
+                case 0:
+                    return x;
+                case 1:
+                    sb.AppendLine("Вектор решения:");
+                    foreach (var val in x)
+                    {
+                        sb.Append(val + " ");
+                    }
+                    sb.AppendLine("\nВектор невязки:");
+                    Vector residual = Residuals(taskMatrix, x);
+                    foreach (var val in residual)
+                    {
+                        sb.Append(val + " ");
+                    }
 
-            return x;
+                    sb.AppendLine($"\nНорма вектора невязки:\n{residual.Norm()}");
+                    
+                    return sb;
+                case 2:
+                    sb.AppendLine("Определитель не найдешь");
+                    return sb;
+                case 3:
+
+                    var tmpInvertMatrix = (double[,])invertMatrix.Data.Clone();
+                    for (uint i = 0; i < _matrixRank; i++)
+                    {
+                        sb.AppendLine($"e{i + 1}");
+                        Matrix invTaskMatrix = locMatrix;
+                        for (uint j = 0; j < _matrixRank; j++)
+                        {
+                            invTaskMatrix[j, _matrixRank] = tmpInvertMatrix[j, i];
+                        }
+
+                        var invVector = ((Vector)SolveWithEasyIter(0, invTaskMatrix, 1e-3,10)).Data;
+                        for (uint j = 0; j < _matrixRank; j++)
+                        {
+
+                            sb.Append(invVector[j].ToString("\t 0.000; \t-0.000"));
+                            invertMatrix[j, i] = invVector[j];
+                        }
+
+                        sb.AppendLine();
+                    }
+
+                    sb.AppendLine("Обратная матрица:");
+                    sb.AppendLine(invertMatrix.ToString());
+                    sb.AppendLine("Матрица невязки:");
+                    var tmpMatrix = new Matrix(taskMatrix.Rows,taskMatrix.Rows);
+                    for (uint i = 0; i < taskMatrix.Rows; i++)
+                    {
+                        for (uint j = 0; j < taskMatrix.Rows; j++)
+                        {
+                            tmpMatrix[i, j] = taskMatrix[i, j];
+                        }
+                    }
+                    invertMatrix = tmpMatrix * invertMatrix;
+                    var identetiMatrix = new Matrix(tmpMatrix.Rows, tmpMatrix.Rows);
+                    for (uint i = 0; i < tmpMatrix.Rows; i++)
+                    {
+                        identetiMatrix[i, i] = 1;
+                    }
+
+                    invertMatrix -= identetiMatrix;
+                    sb.AppendLine(invertMatrix.ToString());
+                    sb.AppendLine($"Норма матрицы невязки:\n{invertMatrix.Norm()}");
+                    
+                    return sb.ToString();
+            }
+            return sb.ToString();
 
         }
         // Проверка условий сходимости
         bool IsConvergent(Matrix taskMatrix)
         {
-            uint n = taskMatrix.Cols;
+            uint n = taskMatrix.Rows;
             for (uint i = 0; i < _matrixRank; i++)
             {
                 double sum = 0;
@@ -336,6 +418,7 @@ namespace nm2
         {
             if (taskType > 3)
                 throw new ArgumentException("Неверный тип задачи");
+            var OutStr = SolveWithEasyIter(taskType, _taskMatrix,1e-3, 10 );
             var outStr = SolveWithGauss(taskType, _taskMatrix);
             using (FileStream fstream = new FileStream(outFileName, FileMode.OpenOrCreate))
             {
@@ -344,6 +427,7 @@ namespace nm2
                 // запись массива байтов в файл
                 fstream.WriteAsync(buffer, 0, buffer.Length);
             }
+            Console.Out.WriteLine(OutStr);
             Console.Out.WriteLine(outStr);
         }
     }
