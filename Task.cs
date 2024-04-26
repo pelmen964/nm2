@@ -224,6 +224,114 @@ namespace nm2
             return sb.ToString();
         }
 
+
+        private object SolveWithEasyIter(uint taskType, Matrix taskMatrix, double eps, int maxIterations)
+        {
+            Matrix locMatrix = (Matrix)taskMatrix.Clone();
+            Matrix invertMatrix = new Matrix(_matrixRank, _matrixRank);
+            
+            for (uint i = 0; i < _matrixRank; i++)
+            {
+                invertMatrix[i, i] = 1;
+            }
+            
+            var sb = new StringBuilder();
+            
+            if(!IsConvergent(locMatrix))
+            {
+
+                throw new InvalidDataException("диагональные элементы должны быть больше чем сумма элементов данной строки");
+
+            }
+            Vector beta = new Vector(_matrixRank) ;
+            Matrix alpha = new Matrix(_matrixRank, _matrixRank);
+            // Преобразование системы к виду x = β + αx
+            for (uint i = 0; i < _matrixRank;  i++)
+            {
+                beta[i] = taskMatrix[i, _matrixRank] / taskMatrix[i, i];
+                for (uint j = 0; j < _matrixRank; j++)
+                {
+                    if (i != j)
+                    {
+                        alpha[i, j] = taskMatrix[i, j] / taskMatrix[i, i];
+                    }
+                    else
+                    {
+                        alpha[i, j] = 0;
+                    }
+                }
+            }
+            uint n = beta.Size;
+            Vector prev_x = new Vector(_matrixRank);
+            Vector x = (Vector)beta.Clone();
+
+            int iteration = 0;
+
+            double tolerance = (1 - taskMatrix.Norm()) / taskMatrix.Norm() * eps;
+            double error = tolerance + 1;
+            
+            while (error > tolerance && iteration < maxIterations)
+            {
+
+                prev_x = (Vector)x.Clone();
+
+                for (uint i = 0; i < n; i++)
+                {
+
+                    double sum = 0;
+
+                    for (uint j = 0; j < n; j++)
+                    {
+
+                        sum += alpha[i, j] * prev_x[j];
+            
+                    }
+            
+                    x[i] = beta[i] + sum;
+        
+                }
+
+                error = 0;
+
+                for (uint i = 0; i < n; i++)
+                {
+                    error += Math.Abs(x[i] - prev_x[i]);
+                }
+
+                iteration++;
+            }
+
+            if (iteration > maxIterations)
+            {
+                Console.WriteLine("The method did not converge within the specified number of iterations.");
+            }
+
+            return x;
+
+        }
+        // Проверка условий сходимости
+        bool IsConvergent(Matrix taskMatrix)
+        {
+            uint n = taskMatrix.Cols;
+            for (uint i = 0; i < _matrixRank; i++)
+            {
+                double sum = 0;
+                for (uint j = 0; j < _matrixRank; j++)
+                {
+                    if (i != j)
+                    {
+                        sum += Math.Abs(taskMatrix[i, j]);
+                    }
+                }
+                if (Math.Abs(taskMatrix[i, i]) <= sum)
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+
         public void Solve(uint taskType, string outFileName)
         {
             if (taskType > 3)
