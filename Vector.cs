@@ -13,7 +13,7 @@ namespace nm2
 
         public Vector(uint len, double[] arr = null)
         {
-            Console.Out.WriteLine($"Конструктор вектора {Id}");
+            //Console.Out.WriteLine($"Конструктор вектора {Id}");
             _size = len;
             _data = new double[len];
 
@@ -61,7 +61,7 @@ namespace nm2
 
         ~Vector()
         {
-            Console.Out.WriteLine($"Деструктор вектора {Id}");
+            //Console.Out.WriteLine($"Деструктор вектора {Id}");
         }
 
         public uint Size
@@ -143,7 +143,7 @@ namespace nm2
         public override string ToString(string format, IFormatProvider formatProvider)
         {
             StringBuilder sb = new StringBuilder();
-            sb.AppendLine($"Вектор id: {Id}");
+            //sb.AppendLine($"Вектор id: {Id}");
             foreach (double var in this)
             {
                 sb.Append($"\t{var}");

@@ -13,7 +13,7 @@ namespace nm2
 
         public Matrix(uint rows = 0, uint cols = 0, double[] data = null)
         {
-            Console.Out.WriteLine($"Конструктор матрицы {Id}");
+            //Console.Out.WriteLine($"Конструктор матрицы {Id}");
             _rows = rows;
             _cols = cols;
             _data = new double[_rows, _cols];
@@ -58,7 +58,7 @@ namespace nm2
 
         ~Matrix()
         {
-            Console.Out.WriteLine($"Деструктор матрицы {Id}");
+            //Console.Out.WriteLine($"Деструктор матрицы {Id}");
         }
 
 
@@ -135,7 +135,7 @@ namespace nm2
         public override string ToString()
         {
             StringBuilder sb = new StringBuilder();
-            sb.AppendLine($"Матрица id: {Id}");
+                //sb.AppendLine($"Матрица id: {Id}");
             for (int i = 0; i < _rows; i++)
             {
                 for (int j = 0; j < _cols; j++)

@@ -255,7 +255,7 @@ namespace nm2
                 {
                     if (i != j)
                     {
-                        alpha[i, j] = taskMatrix[i, j] / taskMatrix[i, i];
+                        alpha[i, j] = -taskMatrix[i, j] / taskMatrix[i, i];
                     }
                     else
                     {
@@ -279,8 +279,9 @@ namespace nm2
 
             int iteration = 0;
 
-            double tolerance = (1 - taskMatrix.Norm()) / taskMatrix.Norm() * eps;
-            double error = tolerance + 1;
+            double tolerance = ((1 - taskMatrix.Norm()) / taskMatrix.Norm() )* eps;
+            double error = tolerance + 100;
+            
             
             while (error > tolerance && iteration < maxIterations)
             {
@@ -353,7 +354,7 @@ namespace nm2
                             invTaskMatrix[j, _matrixRank] = tmpInvertMatrix[j, i];
                         }
 
-                        var invVector = ((Vector)SolveWithEasyIter(0, invTaskMatrix, 1e-3,10)).Data;
+                        var invVector = ((Vector)SolveWithEasyIter(0, invTaskMatrix, 1e-6,100)).Data;
                         for (uint j = 0; j < _matrixRank; j++)
                         {
 
@@ -418,14 +419,18 @@ namespace nm2
         {
             if (taskType > 3)
                 throw new ArgumentException("Неверный тип задачи");
-            var OutStr = SolveWithEasyIter(taskType, _taskMatrix,1e-3, 10 );
+            var OutStr = SolveWithEasyIter(taskType, _taskMatrix,1e-3, 100 );
             var outStr = SolveWithGauss(taskType, _taskMatrix);
             using (FileStream fstream = new FileStream(outFileName, FileMode.OpenOrCreate))
             {
                 // преобразуем строку в байты
-                byte[] buffer = Encoding.Default.GetBytes((string)outStr);
+                byte[] buffer = Encoding.Default.GetBytes((string)outStr.ToString());
+                byte[] Buffer = Encoding.Default.GetBytes((string)OutStr.ToString());
                 // запись массива байтов в файл
+                
                 fstream.WriteAsync(buffer, 0, buffer.Length);
+                
+                fstream.WriteAsync(Buffer, 0, Buffer.Length);
             }
             Console.Out.WriteLine(OutStr);
             Console.Out.WriteLine(outStr);
